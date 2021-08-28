@@ -33,7 +33,7 @@ table! {
     movements (id) {
         id -> Int4,
         uses_weight -> Bool,
-        uses_time -> Bool,
+        uses_distance -> Bool,
         uses_duration -> Bool,
         name -> Nullable<Varchar>,
     }
