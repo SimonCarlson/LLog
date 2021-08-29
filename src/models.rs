@@ -1,21 +1,22 @@
+use chrono::naive::{NaiveDate, NaiveDateTime};
 use serde::Deserialize;
 
-#[derive(Queryable)]
+#[derive(Queryable, Debug)]
 pub struct Workout {
   pub id: i32,
-  pub created_at: String,
+  pub created_at: NaiveDateTime,
   pub name: String,
-  pub session_rpe: f32,
-  pub note: String,
-  pub date: String,
-  pub program_id: i32,
+  pub session_rpe: Option<f64>,
+  pub note: Option<String>,
+  pub date: NaiveDate,
+  pub program_id: Option<i32>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct WorkoutFormData {
   pub name: String,
   pub date: String,
-  pub session_rpe: f32,
+  pub session_rpe: f64,
   pub note: String,
 }
 
@@ -37,8 +38,8 @@ pub struct Set {
   pub created_at: String,
   pub exercise_id: i32,
   pub reps: i32,
-  pub weight: f32,
-  pub rpe: f32,
+  pub weight: f64,
+  pub rpe: f64,
   pub duration: String,
   pub distance: i32,
   pub ordinal: i32,
@@ -71,7 +72,7 @@ pub struct ModifierMap {
   pub id: i32,
   pub modifier_id: i32,
   pub exercise_id: i32,
-  pub value: f32,
+  pub value: f64,
 }
 
 #[derive(Queryable)]

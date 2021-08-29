@@ -25,7 +25,7 @@ table! {
         id -> Int4,
         name -> Varchar,
         prefix -> Bool,
-        unit -> Nullable<Modifier_units>,
+        unit -> Nullable<Varchar>,
     }
 }
 

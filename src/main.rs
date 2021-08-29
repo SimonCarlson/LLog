@@ -1,4 +1,6 @@
 pub mod models;
+pub mod schema;
+use crate::models::Workout;
 use models::WorkoutFormData;
 
 #[macro_use]
@@ -41,10 +43,17 @@ async fn create_new_workout<'a>(form: web::Form<WorkoutFormData>) -> impl Respon
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+  use schema::workouts::dsl::*;
   dotenv().ok();
   Builder::from_env(Env::default().default_filter_or("info")).init();
   let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-  PgConnection::establish(&database_url).expect(&format!("Error connecting to {}", database_url));
+  let connection =
+    PgConnection::establish(&database_url).expect(&format!("Error connecting to {}", database_url));
+  let results = workouts
+    .limit(5)
+    .load::<Workout>(&connection)
+    .expect("Error loading workouts");
+  info!("Got workouts {:?}", results);
 
   HttpServer::new(|| {
     App::new().wrap(Logger::default()).service(
