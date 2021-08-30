@@ -1,3 +1,4 @@
+use crate::schema::*;
 use chrono::naive::{NaiveDate, NaiveDateTime};
 use serde::Deserialize;
 
@@ -6,17 +7,28 @@ pub struct Workout {
   pub id: i32,
   pub created_at: NaiveDateTime,
   pub name: String,
-  pub session_rpe: Option<f64>,
+  pub session_rpe: Option<f64>, // FIXME: Cannot access Option type in templates, might need new struct?
   pub note: Option<String>,
   pub date: NaiveDate,
   pub program_id: Option<i32>,
 }
 
+#[derive(Insertable)]
+#[table_name = "workouts"]
+pub struct NewWorkout<'a> {
+  pub name: &'a str,
+  pub session_rpe: Option<f64>,
+  pub note: Option<&'a str>,
+  pub date: NaiveDate,
+  pub program_id: Option<i32>,
+}
+
+// FIXME: Add program_id and use in lieu of NewWorkout
 #[derive(Deserialize, Debug)]
 pub struct WorkoutFormData {
   pub name: String,
   pub date: String,
-  pub session_rpe: f64,
+  pub session_rpe: f64, // FIXME: If session rpe is empty we get "parse error"
   pub note: String,
 }
 
