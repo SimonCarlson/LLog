@@ -18,6 +18,7 @@ use diesel::r2d2::{ConnectionManager, Pool};
 use dotenv::dotenv;
 use env_logger::{Builder, Env};
 use log::info;
+use serde::Deserialize;
 use std::env;
 
 #[derive(Template)]
@@ -38,20 +39,25 @@ struct WorkoutTemplate {
 
 #[post("/new")]
 async fn create_new_workout<'a>(
-  (req, data, form): (HttpRequest, web::Data<AppState>, web::Form<WorkoutFormData>),
+  (req, state, form): (HttpRequest, web::Data<AppState>, web::Json<WorkoutFormData>),
 ) -> impl Responder {
   use schema::workouts::dsl::*;
 
   info!("Got form {:?}", form);
-  let connection = &data
+  let connection = &state
     .db_pool
     .get()
     .expect("Failed to get database connection.");
 
+  let new_note = match &form.note {
+    Some(inner) => Some(inner.as_str()),
+    None => None,
+  };
+
   let new_workout_struct = NewWorkout {
     name: &form.name,
-    session_rpe: Some(form.session_rpe),
-    note: Some(&form.note),
+    session_rpe: form.session_rpe,
+    note: new_note,
     date: NaiveDate::parse_from_str(&form.date, "%Y-%m-%d").expect("Failed to parse date."),
     program_id: None,
   };
@@ -76,11 +82,13 @@ struct EditWorkoutTemplate {
 }
 
 async fn edit_workout(
-  (data, web::Path(workout_id)): (web::Data<AppState>, web::Path<i32>),
+  (state, web::Path(workout_id)): (web::Data<AppState>, web::Path<i32>),
 ) -> impl Responder {
   use schema::workouts::dsl::*;
 
-  let connection = &data
+  info!("Editing workout {}", workout_id);
+
+  let connection = &state
     .db_pool
     .get()
     .expect("Failed to get database connection.");
@@ -93,6 +101,38 @@ async fn edit_workout(
   }
 }
 
+#[derive(Deserialize, Debug)]
+struct ExerciseData {
+  movements: Vec<MovementData>,
+}
+
+#[derive(Deserialize, Debug)]
+struct MovementData {
+  movement: String,
+  sets: Vec<SetData>,
+}
+
+#[derive(Deserialize, Debug)]
+struct SetData {
+  weight: i32,
+  reps: i32,
+  rpe: Option<f64>,
+}
+
+#[post("/workout/{id}")]
+async fn update_workout(
+  (req, state, web::Path(workout_id)): (
+    web::Json<ExerciseData>,
+    web::Data<AppState>,
+    web::Path<i32>,
+  ),
+) -> impl Responder {
+  use schema::workouts::dsl::*;
+  info!("Req {:?}", req);
+
+  HttpResponse::Ok()
+}
+
 struct AppState {
   db_pool: Pool<ConnectionManager<PgConnection>>,
 }
@@ -100,7 +140,7 @@ struct AppState {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
   dotenv().ok();
-  Builder::from_env(Env::default().default_filter_or("info")).init();
+  Builder::from_env(Env::default().default_filter_or("debug")).init();
   let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
   let manager = ConnectionManager::<PgConnection>::new(database_url);
   let pool = Pool::builder()
@@ -118,6 +158,7 @@ async fn main() -> std::io::Result<()> {
         web::scope("/app")
           .service(new_workout)
           .service(create_new_workout)
+          .service(update_workout)
           .service(
             web::resource("/workout/{id}")
               .name("edit_workout")

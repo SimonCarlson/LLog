@@ -3,7 +3,6 @@ table! {
         id -> Int4,
         workout_id -> Int4,
         created_at -> Timestamptz,
-        name -> Varchar,
         note -> Nullable<Varchar>,
         ordinal -> Int4,
         date -> Date,

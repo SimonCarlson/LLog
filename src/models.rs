@@ -28,8 +28,8 @@ pub struct NewWorkout<'a> {
 pub struct WorkoutFormData {
   pub name: String,
   pub date: String,
-  pub session_rpe: f64, // FIXME: If session rpe is empty we get "parse error"
-  pub note: String,
+  pub session_rpe: Option<f64>,
+  pub note: Option<String>,
 }
 
 #[derive(Queryable)]
@@ -41,6 +41,16 @@ pub struct Exercise {
   pub note: String,
   pub ordinal: i32,
   pub date: String,
+  pub movement_id: i32,
+}
+
+#[derive(Insertable)]
+#[table_name = "exercises"]
+pub struct NewExercise {
+  pub workout_id: i32,
+  pub note: Option<String>,
+  pub ordinal: i32,
+  pub date: NaiveDate,
   pub movement_id: i32,
 }
 
