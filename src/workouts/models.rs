@@ -54,6 +54,11 @@ pub struct NewExercise {
   pub movement_id: i32,
 }
 
+#[derive(Deserialize, Debug)]
+pub struct ExerciseFormData {
+  movements: Vec<MovementFormData>,
+}
+
 #[derive(Queryable)]
 pub struct Set {
   pub id: i32,
@@ -67,6 +72,13 @@ pub struct Set {
   pub ordinal: i32,
 }
 
+#[derive(Deserialize, Debug)]
+pub struct SetFormData {
+  weight: i32,
+  reps: i32,
+  rpe: Option<f64>,
+}
+
 #[derive(Queryable)]
 pub struct Movement {
   pub id: i32,
@@ -74,6 +86,12 @@ pub struct Movement {
   pub uses_distance: bool,
   pub uses_duration: bool,
   pub name: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct MovementFormData {
+  movement: String,
+  sets: Vec<SetFormData>,
 }
 
 pub enum ModifierUnit {
